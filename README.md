@@ -37,7 +37,7 @@ The CNN consists of:
 
 ###  Confusion Matrix  
 Very few errors, near-perfect diagonal.
-
+![](./matrixC.png)
 ---
 
 #  PART 1 — Faster R-CNN (Detection → Classification)
