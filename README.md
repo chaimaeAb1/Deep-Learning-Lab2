@@ -1,116 +1,108 @@
-# Deep Learning Lab 2 – CNN, Faster R-CNN, Transfer Learning & Vision Transformer (MNIST)
+# Deep Learning Lab 2 – CNN, Faster R-CNN, Transfer Learning & Vision Transformer on MNIST
+
+**Abdelmalek Essaadi University**  
+**Faculty of Sciences and Techniques of Tangier**  
+**Computer Engineering Department – Master SITBD**  
+**Module:** Deep Learning  
+**Professor:** Pr. ELAACHAK LOTFI  
+**Student:** ABABRI Chaimae  
+
+---
 
 ## Objective
-The goal of this lab is to explore different deep learning architectures for image classification using the MNIST dataset.  
-We implemented:
-
-- A custom **Convolutional Neural Network (CNN)**
-- A **Faster R-CNN** detection model adapted to classification
-- Two **Transfer Learning models** (VGG16 & AlexNet)
-- A **Vision Transformer (ViT)** implemented from scratch
-
-The full pipeline includes training, validation, testing, comparison of models using accuracy, F1-score, confusion matrix, and training time.
+The main purpose of this lab is to become familiar with the PyTorch library and to build and compare several neural architectures for computer vision on the **MNIST handwritten digit dataset**:
+- Custom Convolutional Neural Network (CNN)
+- Faster R-CNN (originally for detection, adapted here)
+- Transfer Learning with pretrained models (VGG16 & AlexNet)
+- Vision Transformer (ViT) implemented from scratch
 
 ---
 
-#  Dataset  
-We used the MNIST dataset provided on Kaggle:  
-https://www.kaggle.com/datasets/hojjatk/mnist-dataset
-
-Loaded via a custom IDX parser (60,000 train images and 10,000 test images).
-
----
-
-#  PART 1 — CNN Classifier
-
-###  Custom CNN Architecture
-The CNN consists of:
-- 3 convolutional blocks (Conv → ReLU → BatchNorm → MaxPool)
-- Adaptive Average Pooling
-- A fully connected classifier with dropout
-
-**Performance:**
-- **Test Accuracy:** 0.9923  
-- **Test F1-score:** 0.9923  
-- **Training Time:** 53 seconds  
-- **Conclusion:** Best overall model for MNIST.
-
-###  Confusion Matrix  
-Very few errors, near-perfect diagonal.
-![](./matrixC.png)
----
-
-#  PART 1 — Faster R-CNN (Detection → Classification)
-
-A Faster R-CNN MobileNetV3 model was adapted for MNIST:
-
-- Artificial bounding box around each digit
-- Dataset converted to detection format (COCO-style)
-- Fine-tuned for 2 epochs
-
-**Performance:**
-- **Accuracy:** 0.275  
-- **Training Time:** 4.86 seconds  
-- **Conclusion:**  
-  Faster R-CNN is designed for object detection, *not* classification.  
-  Poor performance is expected and demonstrates the limitations of RCNN for MNIST.
+## Dataset
+**MNIST Dataset**  
+- 60,000 training images + 10,000 test images (28×28 grayscale digits)  
+- Source: https://www.kaggle.com/datasets/hojjatk/mnist-dataset  
+- Loaded using a custom IDX parser (no torchvision shortcut)
 
 ---
 
-#  PART 1 — Transfer Learning (VGG16 & AlexNet)
+## Part 1 – CNN Classifier & Comparisons
 
-We froze convolutional layers and trained only the classifier head.
+### 1. Custom CNN (from scratch)
+Lightweight architecture:  
+- 3 convolutional blocks (Conv2d → ReLU → BatchNorm → MaxPool)  
+- Adaptive average pooling + fully-connected classifier with dropout  
 
-###  VGG16 (Transfer Learning)
-- **Test Accuracy:** 0.9678  
-- **Test F1-score:** 0.9674  
-- **Training Time:** 1068 seconds  
-- **Conclusion:** High accuracy but extremely slow and unnecessary for MNIST.
+**Results**  
+- Test Accuracy: **99.23 %**  
+- Test F1-score: **99.23**  
+- Training time: **53 seconds** (on GPU)  
+- Confusion matrix: almost perfect  
+![CNN Confusion Matrix](./matrixC.png)
 
-###  AlexNet (Transfer Learning)
-- **Test Accuracy:** 0.951  
-- **Test F1-score:** 0.950  
-- **Training Time:** 167 seconds  
-- **Conclusion:** Much faster, but less accurate than CNN.
+### 2. Faster R-CNN (adapted to classification)
+- Used torchvision's Faster R-CNN with MobileNetV3 backbone  
+- Converted MNIST into detection format (one artificial bounding box per digit)  
+- Fine-tuned for 2 epochs  
+
+**Results**  
+- Classification Accuracy: **27.5 %**  
+- Training time: ~4.8 seconds  
+
+**Conclusion:** As expected, Faster R-CNN is designed for object detection, not pure classification. Poor performance clearly shows architecture specialization.
+
+### 3. Transfer Learning – VGG16 & AlexNet
+Features frozen, only classifier head trained.
+
+| Model         | Test Accuracy | Test F1-score | Training Time (s) | Comments                     |
+|---------------|---------------|---------------|-------------------|------------------------------|
+| VGG16         | 96.78 %       | 96.74         | 1068              | Extremely slow, overkill     |
+| AlexNet       | 95.10 %       | 95.03         | 167               | Faster but lower performance |
 
 ---
 
-#  PART 2 — Vision Transformer (ViT)
+## Part 2 – Vision Transformer (from scratch)
 
-Implemented from scratch following the tutorial:
+Implemented following this excellent tutorial:  
 https://medium.com/mlearning-ai/vision-transformers-from-scratch-pytorch-a-step-by-step-guide-96c3313c2e0c
 
-Architecture:
-- Patch embedding via Conv2d
+Key components:
+- Image → Patches (7×7) + linear projection
+- Class token + positional embeddings
 - 6 Transformer encoder layers
-- Multi-head self-attention
-- Final linear classifier
+- 8 attention heads
+- MLP classification head
 
-**Performance:**
-- **Test Accuracy:** 0.9727  
-- **Test F1-score:** 0.9725  
-- **Training Time:** 85 seconds  
-- **Conclusion:**  
-  ViT performs well, but CNN remains superior on MNIST due to small image size and limited dataset.
+**Results**  
+- Test Accuracy: **97.27 %**  
+- Test F1-score: 97.25  
+- Training time: ~85 seconds
 
 ---
 
-#  Global Comparison Table
+## Global Comparison
 
-| Model            | Test Accuracy | Test F1 | Training Time (s) | Notes |
-|------------------|--------------|---------|---------------------|-------|
-| **CNN**          | **0.9923**   | **0.9923** | 53  |  Best model |
-| Faster R-CNN     | 0.2750       | —       | 4.8 |  Not adapted for classification |
-| VGG16 (TL)       | 0.9678       | 0.9674  | 1068 | Too heavy |
-| AlexNet (TL)     | 0.9510       | 0.9503  | 167 | Fast but weaker |
-| ViT              | 0.9727       | 0.9725  | 85 | Strong, but CNN still better |
+| Model                | Test Accuracy | F1-score | Training Time (s) | Suitability for MNIST          |
+|----------------------|---------------|----------|-------------------|--------------------------------|
+| **Custom CNN**       | **99.23 %**   | 99.23    | 53                | Best choice                    |
+| Vision Transformer  | 97.27 %       | 97.25    | 85                | Very good but unnecessary      |
+| VGG16 (TL)           | 96.78 %       | 96.74    | 1068              | Far too heavy                  |
+| AlexNet (TL)         | 95.10 %       | 95.03    | 167               | Acceptable                     |
+| Faster R-CNN         | 27.50 %       | —        | ~5                | Completely unsuitable          |
 
 ---
 
-#  Final Conclusion
+## What I Learned – Personal Synthesis
 
-- CNN is the most efficient architecture for MNIST (best accuracy, fastest training).
-- Faster R-CNN is not suitable for classification tasks → intentionally poor results.
-- Transfer Learning models (VGG/AlexNet) do not outperform a small custom CNN.
-- Vision Transformer performs well but requires more data to surpass CNN on low-resolution images.
+During this lab, I gained hands-on experience with:
+- Building CNNs from scratch with full control over layers, kernels, stride, padding, optimizers, and regularization
+- Understanding the fundamental differences between detection models (Faster R-CNN) and classification models
+- Fine-tuning large pretrained networks (VGG16, AlexNet) and realizing that transfer learning is not always beneficial on simple datasets
+- Implementing a complete Vision Transformer from scratch (patch embedding, multi-head attention, transformer encoder)
+- Training everything on GPU with PyTorch
+- Objectively comparing models using accuracy, F1-score, confusion matrices, and training time
 
+**Key takeaway:**  
+For small, structured datasets like MNIST, a well-designed lightweight CNN remains the most efficient and accurate solution. Modern heavy architectures (ViT, large pretrained CNNs, detection models) are overkill and often perform worse in terms of speed/accuracy trade-off.
+
+---
